@@ -11,7 +11,7 @@ class Vector {
       const position = new Vector(vector.x + this.x, vector.y + this.y);
       return position;
     } else {
-      throw new Error;
+      throw new Error ('Можно прибавлять к вектору только вектор типа Vector');
     }
   }
 
@@ -78,7 +78,7 @@ class Level {
 
   get player() {
     const player = this.actors.find(actor => actor.type === 'player');
-     return player;
+    return player;
   }
 
   isFinished() {
@@ -134,5 +134,122 @@ class Level {
        this.status = 'won';
      }
     }
+  }
+}
+
+class LevelParser {
+  constructor(objectDictionary) {
+    this.dictionary = objectDictionary;
+  }
+
+  actorFromSymbol(symbol) {
+    for(let el in this.dictionary) {
+      if(el === symbol) {
+        return this.dictionary[el];
+      }
+    }
+    return;
+  }
+
+  obstacleFromSymbol(symbol) {
+    if(symbol === 'x') {
+      return 'wall';
+    } else if (symbol === '!') {
+      return 'lava';
+    } else {
+      return;
+    }
+  }
+
+  createGrid(plan) {
+    let grid = [];
+    plan.forEach((el) => {
+      let str = el.split('').map((el) => {
+        return this.obstacleFromSymbol(el);
+      })
+      grid.push(str);
+    })
+    return grid;
+  }
+
+  createActors(plan) {
+    let actors = [];
+    plan.forEach((el, y) => {
+      el.split('').forEach((key, x) => {
+        let actorConstructor = this.actorFromSymbol(key);
+        if (actorConstructor && (actorConstructor === Actor || actorConstructor.prototype instanceof Actor)) {
+          actors.push(new actorConstructor(new Vector(x, y)));
+        }
+      })
+    })
+    return actors;
+  }
+
+  parse(plan) {
+    return new Level(this.createGrid(plan), this.createActors(plan));
+  }
+}
+
+class Fireball extends Actor {
+  constructor(pos = new Vector(0,0), speed = new Vector(0,0)) {
+    super();
+
+    this.pos = pos;
+    this.speed = speed;
+    this.size = new Vector(1,1);
+  }
+
+  get type() {
+    return 'fireball';
+  }
+
+  getNextPosition(time = 1 ) {
+    let x = this.pos.x + this.speed.x * time;
+    let y = this.pos.y + this.speed.y * time;
+    return new Vector(x, y);
+  }
+
+  handleObstacle() {
+    this.speed.x = -this.speed.x;
+    this.speed.y = -this.speed.y;
+  }
+
+  act(time, level) {
+    let isObstacle = level.obstacleAt(this.getNextPosition(time), this.size);
+    if(!isObstacle) {
+      this.pos.x = this.pos.x + this.speed.x * time;
+      this.pos.y = this.pos.y + this.speed.y * time;
+    } else {
+      this.handleObstacle();
+    }
+  }
+}
+
+class HorizontalFireball extends Fireball {
+  constructor(position) {
+    super(position);
+
+    this.speed = new Vector(2, 0);
+  }
+}
+
+class VerticalFireball extends Fireball {
+  constructor(position) {
+    super(position);
+
+    this.speed = new Vector(0, 2);
+  }
+}
+
+class FireRain extends Fireball {
+  constructor(position) {
+    super(position);
+
+    this.speed = new Vector(0, 3);
+    this.position = position;
+  }
+
+  handleObstacle() {
+    this.pos = this.position;
   }
 }
