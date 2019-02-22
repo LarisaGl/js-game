@@ -253,3 +253,75 @@ class FireRain extends Fireball {
     this.pos = this.position;
   }
 }
+
+class Coin extends Actor {
+  constructor(pos) {
+    super();
+
+    this.size = new Vector(0.6,0.6);
+    this.spring = Math.random() * (Math.PI * 2);
+    this.springDist = 0.07;
+    this.springSpeed = 8;
+    if (pos) {
+      this.pos = new Vector(pos.x + 0.2, pos.y + 0.1);
+      this.start = new Vector(pos.x + 0.2, pos.y + 0.1);
+    } else {
+      this.pos = new Vector(0.2, 0.1);
+      this.start = new Vector(0.2, 0.1);
+    }
+  }
+
+  get type() {
+    return 'coin';
+  }
+
+  updateSpring(time = 1) {
+    this.spring = this.spring + this.springSpeed * time;
+  }
+
+  getSpringVector() {
+    const y = Math.sin(this.spring) * this.springDist;
+    return new Vector(0, y);
+  }
+
+  getNextPosition(time = 1) {
+    this.updateSpring(time);
+    return new Vector(this.start.x, this.start.y + this.getSpringVector().y);
+  }
+
+  act(time) {
+    this.pos = this.getNextPosition(time);
+  }
+}
+
+class Player extends Actor {
+  constructor(pos) {
+    super();
+
+    if (pos) {
+      this.pos = new Vector(pos.x, pos.y - 0.5);
+    } else {
+      this.pos = new Vector(0, -0.5);
+    }
+    this.speed = new Vector(0,0);
+    this.size = new Vector(0.8,1.5);
+  }
+
+  get type() {
+    return 'player';
+  }
+}
+
+const actorDict = {
+    '@': Player,
+    'v': FireRain,
+    'o': Coin,
+    '=': HorizontalFireball,
+    '|': VerticalFireball
+};
+
+const parser = new LevelParser(actorDict);
+
+loadLevels()
+  .then(map => runGame(JSON.parse(map), parser, DOMDisplay)
+  .then(() => alert('Поздравляем! Вы выиграли!!!')));
