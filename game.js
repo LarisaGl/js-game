@@ -7,28 +7,26 @@ class Vector {
   }
 
   plus(vector) {
-    if(vector instanceof Vector) {
-      const position = new Vector(vector.x + this.x, vector.y + this.y);
-      return position;
-    } else {
+    if(!(vector instanceof Vector)) {
       throw new Error ('Можно прибавлять к вектору только вектор типа Vector');
+    } else {
+      return new Vector(vector.x + this.x, vector.y + this.y);
     }
   }
 
   times(n) {
-    const position = new Vector(this.x * n, this.y * n);
-    return position;
+    return new Vector(this.x * n, this.y * n);
   }
 }
 
 class Actor {
   constructor (pos = new Vector(0,0), size = new Vector(1,1), speed = new Vector(0,0)) {
-    if(pos instanceof Vector && size instanceof Vector && speed instanceof Vector) {
+    if(!(pos instanceof Vector && size instanceof Vector && speed instanceof Vector)) {
+      throw new Error('Cвойство не является объектом Vector');
+    } else {
       this.pos = pos;
       this.size = size;
       this.speed = speed;
-    } else {
-      throw new Error;
     }
   }
 
@@ -57,12 +55,9 @@ class Actor {
 
   isIntersect(actor) {
     if (!(actor instanceof Actor)) {
-      throw new Error;
+      throw new Error('Движущийся объект не является объектом Actor');
     }
-    if ((actor === this) || (actor.top >= this.bottom) || (actor.right <= this.left) || (actor.bottom <= this.top) || (actor.left >= this.right)) {
-       return false;
-    }
-    return true;
+    return !((actor === this) || (actor.top >= this.bottom) || (actor.right <= this.left) || (actor.bottom <= this.top) || (actor.left >= this.right));
   }
 }
 
@@ -77,24 +72,23 @@ class Level {
   }
 
   get player() {
-    const player = this.actors.find(actor => actor.type === 'player');
-    return player;
+    return this.actors.find(actor => actor.type === 'player');
   }
 
   isFinished() {
-    return this.status != 0 && this.finishDelay < 0 ? true : false;
+    return this.status != 0 && this.finishDelay < 0;
   }
 
   actorAt(actor) {
     if (!(actor instanceof Actor)) {
-      throw new Error;
+      throw new Error('Объект не является объектом Actor');
     }
     return this.actors.find(el => el.isIntersect(actor));
   }
 
   obstacleAt(pos, size) {
     if (!(pos instanceof Vector) || !(size instanceof Vector)) {
-      throw new Error;
+      throw new Error('Объект не является объектом Vector');
     }
     let xMin = Math.ceil(pos.x),
         xMax = Math.ceil(pos.x + size.x),
@@ -124,9 +118,7 @@ class Level {
   }
 
   playerTouched(type, actor) {
-    if(this.status != null) {
-      return;
-    } else if (type === 'lava' || type === 'fireball') {
+    if (type === 'lava' || type === 'fireball') {
       this.status = 'lost';
     } else if (type === 'coin') {
       this.removeActor(actor);
@@ -148,7 +140,6 @@ class LevelParser {
         return this.dictionary[el];
       }
     }
-    return;
   }
 
   obstacleFromSymbol(symbol) {
@@ -156,8 +147,6 @@ class LevelParser {
       return 'wall';
     } else if (symbol === '!') {
       return 'lava';
-    } else {
-      return;
     }
   }
 
