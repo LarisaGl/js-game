@@ -114,7 +114,7 @@ class Level {
   }
 
   noMoreActors(type){
-    return this.actors.filter(el => el.type === type).length > 0 ? false : true;
+    return !(this.actors.some(el => el.type === type));
   }
 
   playerTouched(type, actor) {
@@ -180,12 +180,8 @@ class LevelParser {
 }
 
 class Fireball extends Actor {
-  constructor(pos = new Vector(0,0), speed = new Vector(0,0)) {
-    super();
-
-    this.pos = pos;
-    this.speed = speed;
-    this.size = new Vector(1,1);
+  constructor(pos = new Vector(0,0), speed = new Vector(0,0), size = new Vector(1,1)) {
+    super(pos, size, speed);
   }
 
   get type() {
@@ -215,26 +211,21 @@ class Fireball extends Actor {
 }
 
 class HorizontalFireball extends Fireball {
-  constructor(position) {
-    super(position);
-
-    this.speed = new Vector(2, 0);
+  constructor(position, speed = new Vector(2, 0)) {
+    super(position, speed);
   }
 }
 
 class VerticalFireball extends Fireball {
-  constructor(position) {
-    super(position);
-
-    this.speed = new Vector(0, 2);
+  constructor(position, speed = new Vector(0, 2)) {
+    super(position, speed);
   }
 }
 
 class FireRain extends Fireball {
-  constructor(position) {
-    super(position);
+  constructor(position, speed = new Vector(0, 3)) {
+    super(position, speed);
 
-    this.speed = new Vector(0, 3);
     this.position = position;
   }
 
@@ -247,7 +238,7 @@ class Coin extends Actor {
   constructor(pos) {
     super();
 
-    this.size = new Vector(0.6,0.6);
+    this.size = new Vector(0.6,0.6)
     this.spring = Math.random() * (Math.PI * 2);
     this.springDist = 0.07;
     this.springSpeed = 8;
@@ -284,16 +275,14 @@ class Coin extends Actor {
 }
 
 class Player extends Actor {
-  constructor(pos) {
-    super();
+  constructor(pos, speed = new Vector(0,0), size = new Vector(0.8,1.5)) {
+    super(speed, size);
 
     if (pos) {
       this.pos = new Vector(pos.x, pos.y - 0.5);
     } else {
       this.pos = new Vector(0, -0.5);
     }
-    this.speed = new Vector(0,0);
-    this.size = new Vector(0.8,1.5);
   }
 
   get type() {
