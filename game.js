@@ -23,11 +23,10 @@ class Actor {
   constructor (pos = new Vector(0,0), size = new Vector(1,1), speed = new Vector(0,0)) {
     if(!(pos instanceof Vector && size instanceof Vector && speed instanceof Vector)) {
       throw new Error('Cвойство не является объектом Vector');
-    } else {
-      this.pos = pos;
-      this.size = size;
-      this.speed = speed;
     }
+    this.pos = pos;
+    this.size = size;
+    this.speed = speed;
   }
 
   act() {
@@ -69,10 +68,11 @@ class Level {
     this.width = Math.max(0, ...this.grid.map(el => el.length));
     this.status = null;
     this.finishDelay = 1;
+    this._player = this.actors.find(actor => actor.type === 'player');
   }
 
   get player() {
-    return this.actors.find(actor => actor.type === 'player');
+    return this._player;
   }
 
   isFinished() {
@@ -110,7 +110,7 @@ class Level {
   }
 
   removeActor(actor) {
-    this.actors = this.actors.filter(el => el !== actor);
+    this.actors.splice(this.actors.indexOf(actor), 1);
   }
 
   noMoreActors(type){
@@ -135,10 +135,8 @@ class LevelParser {
   }
 
   actorFromSymbol(symbol) {
-    for(let el in this.dictionary) {
-      if(el === symbol) {
-        return this.dictionary[el];
-      }
+    if (symbol) {
+      return this.dictionary[symbol];
     }
   }
 
@@ -163,6 +161,9 @@ class LevelParser {
 
   createActors(plan) {
     let actors = [];
+    if (this.dictionary === undefined) {
+      return actors;
+    }
     plan.forEach((el, y) => {
       el.split('').forEach((key, x) => {
         let actorConstructor = this.actorFromSymbol(key);
@@ -235,18 +236,18 @@ class FireRain extends Fireball {
 }
 
 class Coin extends Actor {
-  constructor(pos) {
-    super();
+  constructor(pos = new Vector(0.2, 0.1), size = new Vector(0.6,0.6)) {
+    super(pos, size);
 
-    this.size = new Vector(0.6,0.6)
     this.spring = Math.random() * (Math.PI * 2);
     this.springDist = 0.07;
     this.springSpeed = 8;
+
+    this.pos = pos.plus(new Vector(0.2, 0.1));
+
     if (pos) {
-      this.pos = new Vector(pos.x + 0.2, pos.y + 0.1);
-      this.start = new Vector(pos.x + 0.2, pos.y + 0.1);
+      this.start = pos.plus(new Vector(0.2, 0.1));
     } else {
-      this.pos = new Vector(0.2, 0.1);
       this.start = new Vector(0.2, 0.1);
     }
   }
@@ -275,14 +276,10 @@ class Coin extends Actor {
 }
 
 class Player extends Actor {
-  constructor(pos, speed = new Vector(0,0), size = new Vector(0.8,1.5)) {
-    super(speed, size);
+  constructor(pos = new Vector(0, -0.5), size = new Vector(0.8,1.5), speed = new Vector(0,0)) {
+    super(pos, size, speed);
 
-    if (pos) {
-      this.pos = new Vector(pos.x, pos.y - 0.5);
-    } else {
-      this.pos = new Vector(0, -0.5);
-    }
+    this.pos = this.pos.plus(new Vector(0, -0.5));
   }
 
   get type() {
