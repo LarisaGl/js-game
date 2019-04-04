@@ -9,9 +9,8 @@ class Vector {
   plus(vector) {
     if(!(vector instanceof Vector)) {
       throw new Error ('Можно прибавлять к вектору только вектор типа Vector');
-    } else {
-      return new Vector(vector.x + this.x, vector.y + this.y);
     }
+    return new Vector(vector.x + this.x, vector.y + this.y);
   }
 
   times(n) {
@@ -90,20 +89,16 @@ class Level {
     if (!(pos instanceof Vector) || !(size instanceof Vector)) {
       throw new Error('Объект не является объектом Vector');
     }
-    let xMin = Math.ceil(pos.x),
-        xMax = Math.ceil(pos.x + size.x),
-        yMin = Math.ceil(pos.y),
-        yMax = Math.ceil(pos.y + size.y);
-    if (xMin < 0 || xMax > this.width || yMin < 0) {
+    if (pos.x < 0 || pos.x + size.x > this.width || pos.y < 0) {
       return 'wall';
-    } else if (yMax > this.height) {
+    } else if (pos.y + size.y > this.height) {
       return 'lava';
-    } else {
-      for (let y = yMin; y < yMax; y++) {
-        for (let x = xMin; x < xMax; x++) {
-          if (this.grid[y][x]) {
-            return this.grid[y][x];
-          }
+    }
+    for (let posY = Math.floor(pos.y); posY < pos.y + size.y; posY++) {
+      for (let posX = Math.floor(pos.x); posX < pos.x + size.x; posX++) {
+        let obstacle = this.grid[posY][posX];
+        if (obstacle) {
+          return obstacle;
         }
       }
     }
@@ -114,7 +109,7 @@ class Level {
   }
 
   noMoreActors(type){
-    return !(this.actors.some(el => el.type === type));
+    return this.actors.every(el => el.type !== type);
   }
 
   playerTouched(type, actor) {
