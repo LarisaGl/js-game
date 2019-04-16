@@ -185,9 +185,7 @@ class Fireball extends Actor {
   }
 
   getNextPosition(time = 1 ) {
-    let x = this.pos.x + this.speed.x * time;
-    let y = this.pos.y + this.speed.y * time;
-    return new Vector(x, y);
+    return new Vector(this.pos.x, this.pos.y).plus(new Vector(this.speed.x, this.speed.y).times(time));
   }
 
   handleObstacle() {
@@ -196,12 +194,11 @@ class Fireball extends Actor {
   }
 
   act(time, level) {
-    let isObstacle = level.obstacleAt(this.getNextPosition(time), this.size);
-    if(!isObstacle) {
-      this.pos.x = this.pos.x + this.speed.x * time;
-      this.pos.y = this.pos.y + this.speed.y * time;
-    } else {
+    let newPosition = this.getNextPosition(time);
+    if (level.obstacleAt(newPosition, this.size)) {
       this.handleObstacle();
+    } else {
+      this.pos = newPosition;
     }
   }
 }
